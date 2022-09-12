@@ -202,11 +202,11 @@ class WizardController extends NewContentElementController
         return $oneRecord !== false;
     }
 
-    protected function getFluidTemplateObject(string $templateName): StandaloneView
+    protected function getFluidTemplateObject(string $filename = 'Main.html'): StandaloneView
     {
         /** @var StandaloneView $view */
         $view = GeneralUtility::makeInstance(StandaloneView::class);
-        $view->setTemplatePathAndFilename(GeneralUtility::getFileAbsFileName('EXT:pagetreefilter/Resources/Private/Templates/Filter/' . $templateName . '.html'));
+        $view->setTemplatePathAndFilename(GeneralUtility::getFileAbsFileName('EXT:pagetreefilter/Resources/Private/Templates/Filter/' . $filename));
         $view->getRequest()->setControllerExtensionName('Pagetreefilter');
 
         return $view;

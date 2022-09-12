@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Lemming\PageTreeFilter\Domain\Repository;
 
 use Lemming\PageTreeFilter\Utility\ConfigurationUtility;
+use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
@@ -116,7 +117,7 @@ class PageTreeRepository extends \TYPO3\CMS\Backend\Tree\Repository\PageTreeRepo
         $queryBuilder->andWhere($searchParts);
         $pageRecords = $queryBuilder
             ->execute()
-            ->fetchAll();
+            ->fetchAllAssociative();
 
         $itemUid = [];
         foreach ($pageRecords as $key => $value){
@@ -186,6 +187,7 @@ class PageTreeRepository extends \TYPO3\CMS\Backend\Tree\Repository\PageTreeRepo
             }
         }
 
+
         $pages = [];
         foreach ($pageRecords as $pageRecord) {
             // In case this is a record from a workspace
@@ -217,8 +219,6 @@ class PageTreeRepository extends \TYPO3\CMS\Backend\Tree\Repository\PageTreeRepo
 
         $pages = $this->filterPagesOnMountPoints($pages, $allowedMountPointPageIds);
 
-
-
         $groupedAndSortedPagesByPid = $this->groupAndSortPages($pages);
 
         $this->fullPageTree = [
@@ -228,6 +228,70 @@ class PageTreeRepository extends \TYPO3\CMS\Backend\Tree\Repository\PageTreeRepo
         $this->addChildrenToPage($this->fullPageTree, $groupedAndSortedPagesByPid);
 
         return $this->fullPageTree;
+    }
+
+    /**
+     * Filter all records outside of the allowed mount points
+     *
+     * @param array $pages
+     * @param array $mountPoints
+     * @return array
+     */
+    protected function filterPagesOnMountPoints(array $pages, array $mountPoints): array
+    {
+        foreach ($pages as $key => $pageRecord) {
+            $rootline = BackendUtility::BEgetRootLine(
+                $pageRecord['uid'],
+                '',
+                $this->currentWorkspace !== 0,
+                $this->fields
+            );
+            $rootline = array_reverse($rootline);
+            if (!in_array(0, $mountPoints, true)) {
+                $isInsideMountPoints = false;
+                foreach ($rootline as $rootlineElement) {
+                    if (in_array((int)$rootlineElement['uid'], $mountPoints, true)) {
+                        $isInsideMountPoints = true;
+                        break;
+                    }
+                }
+                if (!$isInsideMountPoints) {
+                    unset($pages[$key]);
+                    //skip records outside of the allowed mount points
+                    continue;
+                }
+            }
+
+            $inFilteredRootline = false;
+            $amountOfRootlineElements = count($rootline);
+            for ($i = 0; $i < $amountOfRootlineElements; ++$i) {
+                $rootlineElement = $rootline[$i];
+                $rootlineElement['uid'] = (int)$rootlineElement['uid'];
+                $isInWebMount = false;
+                if ($rootlineElement['uid'] > 0) {
+                    $isInWebMount = (int)$this->getBackendUser()->isInWebMount($rootlineElement);
+                }
+
+                if (!$isInWebMount
+                    || ($rootlineElement['uid'] === (int)$mountPoints[0]
+                        && $rootlineElement['uid'] !== $isInWebMount)
+                ) {
+                    continue;
+                }
+                if ($this->getBackendUser()->isAdmin() || ($rootlineElement['uid'] === $isInWebMount && in_array($rootlineElement['uid'], $mountPoints, true))) {
+                    $inFilteredRootline = true;
+                }
+                if (!$inFilteredRootline) {
+                    continue;
+                }
+
+                if (!isset($pages[$rootlineElement['uid']])) {
+                    $pages[$rootlineElement['uid']] = $rootlineElement;
+                }
+            }
+        }
+        //@todo Test and verification since i removed the last part to make sure that it's work correctly without it
+        return $pages;
     }
 
     /**

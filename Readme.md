@@ -1,10 +1,14 @@
-
+****
 TYPO3 Extension: Pagetree Filter
 ================================
 
 *La [version française](#documentation-info-rights) de la documentation suit le texte anglais*
 
 It is able to highlight pages with certain records or content elements in the pagetree. For simplicity it comes with a wizard.
+
+
+## Thank you
+We want to Thank Mr. Christoph Lehmann for the great extension, that we used to add our feature
 
 ## Examples
 
@@ -69,7 +73,7 @@ TYPO3 Extension: Pagetree Filter
 
 ## Remerciement
 
-on vous remercie Mr. Christoph Lehmann qui donner  a nous l'extension de base pour ajouter notre fonctionnement dans l'extension.
+Nous tenons à remercier M. Christoph Lehmann pour l'excellente extension que nous avons utilisée pour ajouter notre fonctionnalité
 #
 Il est capable de mettre en évidence des pages avec certains enregistrements ou éléments de contenu dans l'arborescence des pages. Pour plus de simplicité, il est livré avec un assistant.
 ## Exemples

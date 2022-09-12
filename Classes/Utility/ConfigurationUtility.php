@@ -55,6 +55,8 @@ class ConfigurationUtility
 
         if(!is_null($backendUser['tx_pagetreefilter.']['used_language_uid'])){
             $langUidArray = array_map('intval', explode(',',$backendUser['tx_pagetreefilter.']['used_language_uid']));
+        }else if(!is_null($backendUser['mod.']['tx_pagetreefilter.']['used_language_uid'])){
+            $langUidArray = array_map('intval', explode(',',$backendUser['mod.']['tx_pagetreefilter.']['used_language_uid']));
         }
 
         return array_unique($langUidArray);
